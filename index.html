@@ -163,49 +163,13 @@
             color: #aaa;
         }
 
-        /* Video Player Modal */
-        .player-modal {
+        /* Loading Spinner */
+        .loading {
+            text-align: center;
+            padding: 20px;
+            font-size: 1rem;
+            color: #e50914;
             display: none;
-            position: fixed;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            background: rgba(0,0,0,0.85);
-            z-index: 2000;
-            justify-content: center;
-            align-items: center;
-            padding: 15px;
-        }
-        .player-content {
-            background: #1f1f1f;
-            width: 100%;
-            max-width: 800px;
-            border-radius: 12px;
-            overflow: hidden;
-            position: relative;
-        }
-        .close-btn {
-            position: absolute;
-            top: 10px;
-            right: 15px;
-            font-size: 1.8rem;
-            color: #fff;
-            cursor: pointer;
-            z-index: 10;
-        }
-        .video-container {
-            position: relative;
-            padding-bottom: 56.25%;
-            height: 0;
-        }
-        .video-container iframe {
-            position: absolute;
-            top:0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            border: 0;
         }
 
         /* Download Section Styling */
@@ -339,6 +303,9 @@
             <!-- Dynamic Movies from TMDB API -->
         </div>
 
+        <!-- Loading Indicator -->
+        <div class="loading" id="loadingText">Loading more movies...</div>
+
         <!-- Download Section -->
         <div class="download-section">
             <h3>
@@ -380,41 +347,59 @@
         </div>
     </div>
 
-    <!-- Embedded Video Player Modal -->
-    <div class="player-modal" id="playerModal">
-        <div class="player-content">
-            <span class="close-btn" onclick="closePlayer()">&times;</span>
-            <div class="video-container">
-                <iframe id="videoIframe" src="" allowfullscreen></iframe>
-            </div>
-        </div>
-    </div>
-
     <!-- Footer -->
     <footer>
         <p>&copy; 2026 Pro Movie Hub. All Rights Reserved. Hosted on GitHub Pages.</p>
     </footer>
 
-    <!-- TMDB API Script -->
+    <!-- TMDB API & Redirect Script -->
     <script>
-        const apiKey = 'f3367d69a28ea25da050a43542a03232'; // আপনার আসল এপিআই কি এখানে সেট করা হয়েছে
+        const apiKey = 'f3367d69a28ea25da050a43542a03232';
         const imageBaseUrl = 'https://image.tmdb.org/t/p/w500';
+        
+        // 🔗 এখানে আপনার পছন্দমতো টার্গেট রিডাইরেক্ট লিংকটি বসিয়ে দিন:
+        const targetRedirectUrl = 'https://your-link-here.com'; 
 
-        async function fetchMovies(url) {
+        let currentPage = 1;
+        let isLoading = false;
+        let isSearchMode = false;
+        let currentQuery = '';
+
+        async function fetchMovies(page = 1, append = false) {
+            if (isLoading) return;
+            isLoading = true;
+            document.getElementById('loadingText').style.display = 'block';
+
+            let url = `https://api.themoviedb.org/3/trending/movie/day?api_key=${apiKey}&page=${page}`;
+            if (isSearchMode && currentQuery.trim() !== '') {
+                url = `https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${encodeURIComponent(currentQuery)}&page=${page}`;
+            }
+
             try {
                 let response = await fetch(url);
                 let data = await response.json();
-                displayMovies(data.results);
+                displayMovies(data.results, append);
+                
+                if (page < data.total_pages) {
+                    currentPage = page + 1;
+                } else {
+                    document.getElementById('loadingText').innerText = 'No more movies to load.';
+                }
             } catch (error) {
                 console.error('Error fetching movies:', error);
+            } finally {
+                isLoading = false;
+                if (!isSearchMode || currentPage > 1) {
+                    document.getElementById('loadingText').style.display = 'none';
+                }
             }
         }
 
-        fetchMovies(`https://api.themoviedb.org/3/trending/movie/day?api_key=${apiKey}`);
-
-        function displayMovies(movies) {
+        function displayMovies(movies, append) {
             const grid = document.getElementById('movieGrid');
-            grid.innerHTML = '';
+            if (!append) {
+                grid.innerHTML = '';
+            }
 
             movies.forEach(movie => {
                 let poster = movie.poster_path ? imageBaseUrl + movie.poster_path : 'https://via.placeholder.com/500x750?text=No+Image';
@@ -423,7 +408,11 @@
 
                 let card = document.createElement('div');
                 card.className = 'movie-card';
-                card.onclick = () => fetchMovieTrailer(movie.id);
+                
+                // ক্লিক করলে সরাসরি আপনার নির্দিষ্ট করা লিংকে নিয়ে যাবে (নতুন ট্যাবে খুলবে)
+                card.onclick = () => {
+                    window.open(targetRedirectUrl, '_blank');
+                };
 
                 card.innerHTML = `
                     <img src="${poster}" alt="${title}" class="movie-poster">
@@ -436,29 +425,16 @@
             });
         }
 
-        async function fetchMovieTrailer(movieId) {
-            try {
-                let response = await fetch(`https://api.themoviedb.org/3/movie/${movieId}/videos?api_key=${apiKey}`);
-                let data = await response.json();
-                let trailer = data.results.find(vid => vid.type === 'Trailer' && vid.site === 'YouTube');
-
-                if (trailer) {
-                    openPlayer(`https://www.youtube.com/embed/${trailer.key}`);
-                } else {
-                    alert('Trailer not available for this movie.');
-                }
-            } catch (error) {
-                console.error('Error fetching trailer:', error);
-            }
-        }
-
         function searchMovies() {
             let query = document.getElementById('searchInput').value;
+            currentQuery = query;
+            currentPage = 1;
             if (query.trim() !== '') {
-                fetchMovies(`https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${encodeURIComponent(query)}`);
+                isSearchMode = true;
             } else {
-                fetchMovies(`https://api.themoviedb.org/3/trending/movie/day?api_key=${apiKey}`);
+                isSearchMode = false;
             }
+            fetchMovies(1, false);
         }
 
         function handleSearch(event) {
@@ -467,15 +443,16 @@
             }
         }
 
-        function openPlayer(videoUrl) {
-            document.getElementById('videoIframe').src = videoUrl;
-            document.getElementById('playerModal').style.display = 'flex';
-        }
+        // Infinite Scroll Event Listener
+        window.addEventListener('scroll', () => {
+            const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+            if (scrollTop + clientHeight >= scrollHeight - 200) {
+                fetchMovies(currentPage, true);
+            }
+        });
 
-        function closePlayer() {
-            document.getElementById('videoIframe').src = '';
-            document.getElementById('playerModal').style.display = 'none';
-        }
+        // Initial load
+        fetchMovies(1, false);
     </script>
 </body>
 </html>
