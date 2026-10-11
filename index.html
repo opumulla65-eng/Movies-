@@ -3,9 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pro Movie Hub - Movie Streaming & Downloading</title>
+    <title>Pro Movie Hub - Stream & Download HD Movies</title>
     <style>
-        /* Basic Design & Dark Theme */
+        /* Base Styles & Dark Theme */
         * {
             margin: 0;
             padding: 0;
@@ -27,7 +27,6 @@
             position: sticky;
             top: 0;
             z-index: 1000;
-            flex-wrap: nowrap;
         }
         .logo {
             font-size: 1.3rem;
@@ -54,14 +53,17 @@
             margin: 20px auto;
             padding: 0 15px;
         }
+        
+        /* Hero Banner */
         .welcome-banner {
-            background: linear-gradient(rgba(0,0,0,0.7), rgba(0,0,0,0.7)), url('https://image.tmdb.org/t/p/original/wwemzKWzjKYJFfCeiB57q3r4Bcm.jpg');
+            background: linear-gradient(rgba(0,0,0,0.75), rgba(0,0,0,0.75)), url('https://image.tmdb.org/t/p/original/wwemzKWzjKYJFfCeiB57q3r4Bcm.jpg');
             background-size: cover;
             background-position: center;
             padding: 40px 15px;
             border-radius: 12px;
             text-align: center;
-            margin-bottom: 30px;
+            margin-bottom: 25px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.5);
         }
         .welcome-banner h1 {
             font-size: 1.8rem;
@@ -73,7 +75,71 @@
             color: #ccc;
         }
 
-        /* Movie Section & Grid Design */
+        /* Search & Filter Container */
+        .search-filter-container {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+            margin-bottom: 30px;
+            background: #1f1f1f;
+            padding: 15px;
+            border-radius: 10px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        .search-box {
+            display: flex;
+            width: 100%;
+        }
+        .search-box input {
+            width: 100%;
+            padding: 12px 15px;
+            background: #2b2b2b;
+            border: 1px solid #444;
+            border-radius: 6px 0 0 6px;
+            color: #fff;
+            font-size: 0.95rem;
+            outline: none;
+        }
+        .search-box input:focus {
+            border-color: #e50914;
+        }
+        .search-box button {
+            background: #e50914;
+            border: none;
+            padding: 0 20px;
+            color: #fff;
+            border-radius: 0 6px 6px 0;
+            cursor: pointer;
+            font-weight: bold;
+            transition: background 0.3s;
+        }
+        .search-box button:hover {
+            background: #f6121d;
+        }
+        .category-tags {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            padding-bottom: 5px;
+        }
+        .category-btn {
+            background: #2b2b2b;
+            color: #ccc;
+            border: 1px solid #3d3d3d;
+            padding: 6px 14px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            cursor: pointer;
+            white-space: nowrap;
+            transition: all 0.3s;
+        }
+        .category-btn:hover, .category-btn.active {
+            background: #e50914;
+            color: #fff;
+            border-color: #e50914;
+        }
+
+        /* Movie Section Title & Grid */
         .section-title {
             font-size: 1.3rem;
             margin-bottom: 15px;
@@ -84,17 +150,19 @@
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
             gap: 15px;
-            margin-bottom: 30px;
+            margin-bottom: 40px;
         }
         .movie-card {
             background: #1f1f1f;
             border-radius: 8px;
             overflow: hidden;
-            transition: transform 0.3s ease;
-            box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+            cursor: pointer;
+            position: relative;
         }
         .movie-card:hover {
             transform: translateY(-5px);
+            box-shadow: 0 8px 20px rgba(229, 9, 20, 0.3);
         }
         .movie-poster {
             width: 100%;
@@ -107,7 +175,7 @@
         .movie-title {
             font-size: 0.9rem;
             font-weight: 600;
-            margin-bottom: 5px;
+            margin-bottom: 3px;
             white-space: nowrap;
             overflow: hidden;
             text-overflow: ellipsis;
@@ -117,12 +185,57 @@
             color: #aaa;
         }
 
+        /* Video Player Modal */
+        .player-modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.85);
+            z-index: 2000;
+            justify-content: center;
+            align-items: center;
+            padding: 15px;
+        }
+        .player-content {
+            background: #1f1f1f;
+            width: 100%;
+            max-width: 800px;
+            border-radius: 12px;
+            overflow: hidden;
+            position: relative;
+        }
+        .close-btn {
+            position: absolute;
+            top: 10px;
+            right: 15px;
+            font-size: 1.8rem;
+            color: #fff;
+            cursor: pointer;
+            z-index: 10;
+        }
+        .video-container {
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+        }
+        .video-container iframe {
+            position: absolute;
+            top:0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            border: 0;
+        }
+
         /* Download Section Styling */
         .download-section {
             background: #1a1a1a;
             border-radius: 12px;
             padding: 15px;
-            margin-top: 20px;
+            margin-top: 25px;
             box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
             color: #fff;
         }
@@ -200,11 +313,22 @@
         .btn-download.server-2:hover {
             background: #3d3d3d;
         }
+
+        /* Footer */
+        footer {
+            background: #1f1f1f;
+            text-align: center;
+            padding: 20px;
+            margin-top: 40px;
+            border-top: 1px solid #333;
+            font-size: 0.85rem;
+            color: #aaa;
+        }
     </style>
 </head>
 <body>
 
-    <!-- Header / Navigation Bar -->
+    <!-- Navigation Header -->
     <header>
         <div class="logo">🎬 Pro Movie Hub</div>
         <nav>
@@ -215,62 +339,79 @@
         </nav>
     </header>
 
-    <!-- Main Content / Banner Area -->
+    <!-- Main Container -->
     <div class="container">
+        <!-- Hero Banner -->
         <div class="welcome-banner">
-            <h1>Stream & Download Your Favorite Movies</h1>
-            <p>Watch and download the latest Hollywood and Bollywood movies in high quality completely free.</p>
+            <h1>Stream & Download Free HD Movies</h1>
+            <p>Watch latest releases and download high-quality movies in single click.</p>
         </div>
 
-        <!-- Trending Movies Grid -->
-        <h2 class="section-title">Latest Movies</h2>
-        <div class="movie-grid">
-            <!-- Movie Card 1 -->
-            <div class="movie-card">
-                <img src="https://image.tmdb.org/t/p/w500/1pdfLvkbY9ohJlCjQH2CZjjYVvJ.jpg" alt="Movie Poster" class="movie-poster">
+        <!-- Search & Filter Options -->
+        <div class="search-filter-container">
+            <div class="search-box">
+                <input type="text" id="searchInput" placeholder="Search movies, genres, or keywords...">
+                <button onclick="searchMovies()">Search</button>
+            </div>
+            <div class="category-tags">
+                <button class="category-btn active" onclick="filterGenre('All', this)">All</button>
+                <button class="category-btn" onclick="filterGenre('Action', this)">Action</button>
+                <button class="category-btn" onclick="filterGenre('Sci-Fi', this)">Sci-Fi</button>
+                <button class="category-btn" onclick="filterGenre('Drama', this)">Drama</button>
+                <button class="category-btn" onclick="filterGenre('Animation', this)">Animation</button>
+                <button class="category-btn" onclick="filterGenre('Adventure', this)">Adventure</button>
+            </div>
+        </div>
+
+        <!-- Movie Catalog Grid -->
+        <h2 class="section-title">Trending Movies</h2>
+        <div class="movie-grid" id="movieGrid">
+            
+            <!-- Movie Item 1 -->
+            <div class="movie-card" data-genre="Action Sci-Fi" onclick="openPlayer('https://www.youtube.com/embed/Way9Dexny3w')">
+                <img src="https://image.tmdb.org/t/p/w500/1pdfLvkbY9ohJlCjQH2CZjjYVvJ.jpg" alt="Dune 2" class="movie-poster">
                 <div class="movie-details">
                     <div class="movie-title">Dune: Part Two</div>
                     <div class="movie-year">2024 • Action / Sci-Fi</div>
                 </div>
             </div>
 
-            <!-- Movie Card 2 -->
-            <div class="movie-card">
-                <img src="https://image.tmdb.org/t/p/w500/vpnVM9B6NMmQpWeZvzLvDESb2QY.jpg" alt="Movie Poster" class="movie-poster">
+            <!-- Movie Item 2 -->
+            <div class="movie-card" data-genre="Drama" onclick="openPlayer('https://www.youtube.com/embed/uYPbbksJxIg')">
+                <img src="https://image.tmdb.org/t/p/w500/vpnVM9B6NMmQpWeZvzLvDESb2QY.jpg" alt="Oppenheimer" class="movie-poster">
                 <div class="movie-details">
                     <div class="movie-title">Oppenheimer</div>
                     <div class="movie-year">2023 • Drama / Biography</div>
                 </div>
             </div>
 
-            <!-- Movie Card 3 -->
-            <div class="movie-card">
-                <img src="https://image.tmdb.org/t/p/w500/8Vt6mWEReuy4Of61Lnj5Xj704m8.jpg" alt="Movie Poster" class="movie-poster">
+            <!-- Movie Item 3 -->
+            <div class="movie-card" data-genre="Animation Action" onclick="openPlayer('https://www.youtube.com/embed/cqGjhVJWtEg')">
+                <img src="https://image.tmdb.org/t/p/w500/8Vt6mWEReuy4Of61Lnj5Xj704m8.jpg" alt="Spider-Man" class="movie-poster">
                 <div class="movie-details">
-                    <div class="movie-title">Spider-Man: Across the Spider-Verse</div>
+                    <div class="movie-title">Spider-Man: Across Spider-Verse</div>
                     <div class="movie-year">2023 • Animation / Action</div>
                 </div>
             </div>
 
-            <!-- Movie Card 4 -->
-            <div class="movie-card">
-                <img src="https://image.tmdb.org/t/p/w500/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg" alt="Movie Poster" class="movie-poster">
+            <!-- Movie Item 4 -->
+            <div class="movie-card" data-genre="Sci-Fi Adventure" onclick="openPlayer('https://www.youtube.com/embed/zSWdZVtXT7E')">
+                <img src="https://image.tmdb.org/t/p/w500/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg" alt="Interstellar" class="movie-poster">
                 <div class="movie-details">
                     <div class="movie-title">Interstellar</div>
                     <div class="movie-year">2014 • Sci-Fi / Adventure</div>
                 </div>
             </div>
+
         </div>
 
-        <!-- Multi-Resolution Download Section -->
+        <!-- Download Section -->
         <div class="download-section">
             <h3>
                 <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="7 10 12 15 17 10"></polyline><line x1="12" y1="15" x2="12" y2="3"></line></svg>
-                Download Links (Multi-Resolution)
+                Download Servers (Multi-Resolution)
             </h3>
-            
             <div class="server-grid">
-                <!-- 480p Quality -->
                 <div class="quality-card">
                     <div class="quality-info">
                         <span class="resolution">480p SD</span>
@@ -281,8 +422,6 @@
                         <a href="#" class="btn-download server-2" target="_blank">Server 2</a>
                     </div>
                 </div>
-
-                <!-- 720p Quality -->
                 <div class="quality-card">
                     <div class="quality-info">
                         <span class="resolution">720p HD</span>
@@ -293,8 +432,6 @@
                         <a href="#" class="btn-download server-2" target="_blank">Server 2</a>
                     </div>
                 </div>
-
-                <!-- 1080p Quality -->
                 <div class="quality-card">
                     <div class="quality-info">
                         <span class="resolution">1080p FHD</span>
@@ -309,5 +446,68 @@
         </div>
     </div>
 
+    <!-- Embedded Video Player Modal -->
+    <div class="player-modal" id="playerModal">
+        <div class="player-content">
+            <span class="close-btn" onclick="closePlayer()">&times;</span>
+            <div class="video-container">
+                <iframe id="videoIframe" src="" allowfullscreen></iframe>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer>
+        <p>&copy; 2026 Pro Movie Hub. All Rights Reserved. Hosted on GitHub Pages.</p>
+    </footer>
+
+    <!-- Interactive Script -->
+    <script>
+        // Search functionality
+        function searchMovies() {
+            let input = document.getElementById('searchInput').value.toLowerCase();
+            let cards = document.getElementsByClassName('movie-card');
+
+            for (let card of cards) {
+                let title = card.querySelector('.movie-title').innerText.toLowerCase();
+                if (title.includes(input)) {
+                    card.style.display = "block";
+                } else {
+                    card.style.display = "none";
+                }
+            }
+        }
+
+        // Live input search
+        document.getElementById('searchInput').addEventListener('keyup', searchMovies);
+
+        // Category Filter
+        function filterGenre(genre, btn) {
+            let buttons = document.querySelectorAll('.category-btn');
+            buttons.forEach(b => b.classList.remove('active'));
+            btn.classList.add('active');
+
+            let cards = document.getElementsByClassName('movie-card');
+            for (let card of cards) {
+                let cardGenre = card.getAttribute('data-genre');
+                if (genre === 'All' || cardGenre.includes(genre)) {
+                    card.style.display = "block";
+                } else {
+                    card.style.display = "none";
+                }
+            }
+        }
+
+        // Modal Player Controls
+        function openPlayer(videoUrl) {
+            document.getElementById('videoIframe').src = videoUrl;
+            document.getElementById('playerModal').style.display = 'flex';
+        }
+
+        function closePlayer() {
+            document.getElementById('videoIframe').src = '';
+            document.getElementById('playerModal').style.display = 'none';
+        }
+    </script>
 </body>
 </html>
