@@ -75,7 +75,7 @@
             color: #ccc;
         }
 
-        /* Search & Filter Container */
+        /* Search Box */
         .search-filter-container {
             display: flex;
             flex-direction: column;
@@ -115,28 +115,6 @@
         }
         .search-box button:hover {
             background: #f6121d;
-        }
-        .category-tags {
-            display: flex;
-            gap: 8px;
-            overflow-x: auto;
-            padding-bottom: 5px;
-        }
-        .category-btn {
-            background: #2b2b2b;
-            color: #ccc;
-            border: 1px solid #3d3d3d;
-            padding: 6px 14px;
-            border-radius: 20px;
-            font-size: 0.85rem;
-            cursor: pointer;
-            white-space: nowrap;
-            transition: all 0.3s;
-        }
-        .category-btn:hover, .category-btn.active {
-            background: #e50914;
-            color: #fff;
-            border-color: #e50914;
         }
 
         /* Movie Section Title & Grid */
@@ -347,62 +325,18 @@
             <p>Watch latest releases and download high-quality movies in single click.</p>
         </div>
 
-        <!-- Search & Filter Options -->
+        <!-- Search Box -->
         <div class="search-filter-container">
             <div class="search-box">
-                <input type="text" id="searchInput" placeholder="Search movies, genres, or keywords...">
+                <input type="text" id="searchInput" placeholder="Search movies..." onkeyup="handleSearch(event)">
                 <button onclick="searchMovies()">Search</button>
-            </div>
-            <div class="category-tags">
-                <button class="category-btn active" onclick="filterGenre('All', this)">All</button>
-                <button class="category-btn" onclick="filterGenre('Action', this)">Action</button>
-                <button class="category-btn" onclick="filterGenre('Sci-Fi', this)">Sci-Fi</button>
-                <button class="category-btn" onclick="filterGenre('Drama', this)">Drama</button>
-                <button class="category-btn" onclick="filterGenre('Animation', this)">Animation</button>
-                <button class="category-btn" onclick="filterGenre('Adventure', this)">Adventure</button>
             </div>
         </div>
 
         <!-- Movie Catalog Grid -->
         <h2 class="section-title">Trending Movies</h2>
         <div class="movie-grid" id="movieGrid">
-            
-            <!-- Movie Item 1 -->
-            <div class="movie-card" data-genre="Action Sci-Fi" onclick="openPlayer('https://www.youtube.com/embed/Way9Dexny3w')">
-                <img src="https://image.tmdb.org/t/p/w500/1pdfLvkbY9ohJlCjQH2CZjjYVvJ.jpg" alt="Dune 2" class="movie-poster">
-                <div class="movie-details">
-                    <div class="movie-title">Dune: Part Two</div>
-                    <div class="movie-year">2024 • Action / Sci-Fi</div>
-                </div>
-            </div>
-
-            <!-- Movie Item 2 -->
-            <div class="movie-card" data-genre="Drama" onclick="openPlayer('https://www.youtube.com/embed/uYPbbksJxIg')">
-                <img src="https://image.tmdb.org/t/p/w500/vpnVM9B6NMmQpWeZvzLvDESb2QY.jpg" alt="Oppenheimer" class="movie-poster">
-                <div class="movie-details">
-                    <div class="movie-title">Oppenheimer</div>
-                    <div class="movie-year">2023 • Drama / Biography</div>
-                </div>
-            </div>
-
-            <!-- Movie Item 3 -->
-            <div class="movie-card" data-genre="Animation Action" onclick="openPlayer('https://www.youtube.com/embed/cqGjhVJWtEg')">
-                <img src="https://image.tmdb.org/t/p/w500/8Vt6mWEReuy4Of61Lnj5Xj704m8.jpg" alt="Spider-Man" class="movie-poster">
-                <div class="movie-details">
-                    <div class="movie-title">Spider-Man: Across Spider-Verse</div>
-                    <div class="movie-year">2023 • Animation / Action</div>
-                </div>
-            </div>
-
-            <!-- Movie Item 4 -->
-            <div class="movie-card" data-genre="Sci-Fi Adventure" onclick="openPlayer('https://www.youtube.com/embed/zSWdZVtXT7E')">
-                <img src="https://image.tmdb.org/t/p/w500/gEU2QniE6E77NI6lCU6MxlNBvIx.jpg" alt="Interstellar" class="movie-poster">
-                <div class="movie-details">
-                    <div class="movie-title">Interstellar</div>
-                    <div class="movie-year">2014 • Sci-Fi / Adventure</div>
-                </div>
-            </div>
-
+            <!-- Dynamic Movies from TMDB API -->
         </div>
 
         <!-- Download Section -->
@@ -461,44 +395,78 @@
         <p>&copy; 2026 Pro Movie Hub. All Rights Reserved. Hosted on GitHub Pages.</p>
     </footer>
 
-    <!-- Interactive Script -->
+    <!-- TMDB API Script -->
     <script>
-        // Search functionality
+        const apiKey = 'f3367d69a28ea25da050a43542a03232'; // আপনার আসল এপিআই কি এখানে সেট করা হয়েছে
+        const imageBaseUrl = 'https://image.tmdb.org/t/p/w500';
+
+        async function fetchMovies(url) {
+            try {
+                let response = await fetch(url);
+                let data = await response.json();
+                displayMovies(data.results);
+            } catch (error) {
+                console.error('Error fetching movies:', error);
+            }
+        }
+
+        fetchMovies(`https://api.themoviedb.org/3/trending/movie/day?api_key=${apiKey}`);
+
+        function displayMovies(movies) {
+            const grid = document.getElementById('movieGrid');
+            grid.innerHTML = '';
+
+            movies.forEach(movie => {
+                let poster = movie.poster_path ? imageBaseUrl + movie.poster_path : 'https://via.placeholder.com/500x750?text=No+Image';
+                let title = movie.title || movie.name;
+                let releaseDate = movie.release_date ? movie.release_date.split('-')[0] : 'N/A';
+
+                let card = document.createElement('div');
+                card.className = 'movie-card';
+                card.onclick = () => fetchMovieTrailer(movie.id);
+
+                card.innerHTML = `
+                    <img src="${poster}" alt="${title}" class="movie-poster">
+                    <div class="movie-details">
+                        <div class="movie-title">${title}</div>
+                        <div class="movie-year">${releaseDate} • TMDB HD</div>
+                    </div>
+                `;
+                grid.appendChild(card);
+            });
+        }
+
+        async function fetchMovieTrailer(movieId) {
+            try {
+                let response = await fetch(`https://api.themoviedb.org/3/movie/${movieId}/videos?api_key=${apiKey}`);
+                let data = await response.json();
+                let trailer = data.results.find(vid => vid.type === 'Trailer' && vid.site === 'YouTube');
+
+                if (trailer) {
+                    openPlayer(`https://www.youtube.com/embed/${trailer.key}`);
+                } else {
+                    alert('Trailer not available for this movie.');
+                }
+            } catch (error) {
+                console.error('Error fetching trailer:', error);
+            }
+        }
+
         function searchMovies() {
-            let input = document.getElementById('searchInput').value.toLowerCase();
-            let cards = document.getElementsByClassName('movie-card');
-
-            for (let card of cards) {
-                let title = card.querySelector('.movie-title').innerText.toLowerCase();
-                if (title.includes(input)) {
-                    card.style.display = "block";
-                } else {
-                    card.style.display = "none";
-                }
+            let query = document.getElementById('searchInput').value;
+            if (query.trim() !== '') {
+                fetchMovies(`https://api.themoviedb.org/3/search/movie?api_key=${apiKey}&query=${encodeURIComponent(query)}`);
+            } else {
+                fetchMovies(`https://api.themoviedb.org/3/trending/movie/day?api_key=${apiKey}`);
             }
         }
 
-        // Live input search
-        document.getElementById('searchInput').addEventListener('keyup', searchMovies);
-
-        // Category Filter
-        function filterGenre(genre, btn) {
-            let buttons = document.querySelectorAll('.category-btn');
-            buttons.forEach(b => b.classList.remove('active'));
-            btn.classList.add('active');
-
-            let cards = document.getElementsByClassName('movie-card');
-            for (let card of cards) {
-                let cardGenre = card.getAttribute('data-genre');
-                if (genre === 'All' || cardGenre.includes(genre)) {
-                    card.style.display = "block";
-                } else {
-                    card.style.display = "none";
-                }
+        function handleSearch(event) {
+            if (event.key === 'Enter') {
+                searchMovies();
             }
         }
 
-        // Modal Player Controls
         function openPlayer(videoUrl) {
             document.getElementById('videoIframe').src = videoUrl;
             document.getElementById('playerModal').style.display = 'flex';
